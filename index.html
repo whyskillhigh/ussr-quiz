@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Экзамен СССР: Цены, ГОСТы и Быт</title>
+    <meta name="description" content="Интерактивный исторический экзамен по эпохе СССР: реальные цены в копейках, ГОСТы, автопром и легендарный быт.">
+
+    <!-- VK Bridge & Yandex Games SDK -->
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    <script src="https://yandex.ru/games/sdk/v2"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- ВЕРХНЯЯ ПАНЕЛЬ СТАТИСТИКИ -->
+        <header class="top-header">
+            <div class="user-status">
+                <span class="rank-badge" id="stat-rank">⭐ Октябрёнок</span>
+                <div class="balance-stats">
+                    <span class="stat-item stat-coins" id="stat-coins">15 ₽</span>
+                    <span class="stat-item stat-score">Очки: <span id="stat-score">0</span></span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-icon btn-servant-link" id="btn-open-servant" title="Открыть Сервант">
+                    🏺 Сервант
+                </button>
+                <button class="btn-icon" id="btn-sound-toggle" title="Звук">
+                    🔊
+                </button>
+            </div>
+        </header>
+
+        <!-- ==================== ЭКРАН 1: ГЛАВНОЕ МЕНЮ И ВЫБОР ГЛАВ ==================== -->
+        <main class="screen" id="screen-main">
+            <!-- Приветственный баннер -->
+            <section class="hero-banner">
+                <h1 class="hero-title">Экзамен СССР</h1>
+                <p class="hero-subtitle">Цены по Госкомцену • Знаки качества ГОСТ • Советский быт</p>
+            </section>
+
+            <!-- Блок обратного перелива (Клуб "Ностальгия по ГОСТу") -->
+            <section class="club-card" id="club-bonus-banner">
+                <div class="club-header">
+                    <span class="club-icon">🗞️</span>
+                    <div>
+                        <h4 class="club-title">Архив «Ностальгия по ГОСТу»</h4>
+                        <p class="club-desc">Редкие фотографии, рассекреченные документы и настоящие цены СССР каждый день!</p>
+                    </div>
+                </div>
+                <div class="club-actions">
+                    <button class="btn-claim-bonus" id="btn-claim-club-bonus">
+                        🎁 Вступить в клуб (+50 ₽ и 2 подсказки)
+                    </button>
+                    <a href="https://vk.com/club243027245" target="_blank" rel="noopener noreferrer" class="btn-club-link">
+                        ВКонтакте
+                    </a>
+                    <a href="https://ok.ru/group/70000059630813" target="_blank" rel="noopener noreferrer" class="btn-club-link">
+                        Одноклассники
+                    </a>
+                    <a href="https://t.me/nostalgiya_po_gostu" target="_blank" rel="noopener noreferrer" class="btn-club-link">
+                        Telegram
+                    </a>
+                    <a href="https://dzen.ru/nostalgiya_ussr" target="_blank" rel="noopener noreferrer" class="btn-club-link">
+                        Дзен
+                    </a>
+                </div>
+            </section>
+
+            <!-- Раздел глав экзамена -->
+            <h2 class="section-title">Главы Экзамена</h2>
+            <div class="chapters-grid" id="chapters-list">
+                <!-- Заполняется динамически из questions.js -->
+            </div>
+        </main>
+
+        <!-- ==================== ЭКРАН 2: ПРОХОЖДЕНИЕ ВОПРОСА ==================== -->
+        <section class="screen hidden" id="screen-quiz">
+            <div class="quiz-header">
+                <div class="quiz-top-bar">
+                    <span class="quiz-chapter-name" id="quiz-chapter-name">Глава 1</span>
+                    <span class="quiz-progress-text" id="quiz-progress-text">Вопрос 1 из 10</span>
+                </div>
+                <div class="quiz-progress-bar">
+                    <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
+                </div>
+            </div>
+
+            <!-- Карточка вопроса с архивным фото -->
+            <div class="quiz-card">
+                <div class="quiz-img-box">
+                    <img src="img/gastronom.jpg" alt="Иллюстрация вопроса" class="quiz-img" id="quiz-image">
+                </div>
+                <h3 class="quiz-question-text" id="quiz-question-text">
+                    Сколько стоил коробок спичек на протяжении десятилетий в СССР?
+                </h3>
+            </div>
+
+            <!-- Варианты ответов -->
+            <div class="quiz-options" id="quiz-options-container">
+                <!-- Кнопки генерируются динамически -->
+            </div>
+
+            <!-- Карточка факта (появляется после ответа) -->
+            <div class="fact-card hidden" id="quiz-fact-card">
+                <div id="fact-status-badge" class="status-badge-success">Правильно! ГОСТ соблюдён!</div>
+                <p class="fact-text" id="fact-historical-text">
+                    Спички стоили ровно 1 копейку. Сдачу в 1-2 копейки в магазинах часто давали именно коробками спичек.
+                </p>
+            </div>
+
+            <!-- Кнопка перехода к следующему вопросу -->
+            <button class="btn btn-primary btn-next-q hidden" id="btn-next-question">
+                Следующий вопрос ➔
+            </button>
+
+            <!-- Панель подсказок -->
+            <div class="hints-bar">
+                <button class="btn-hint" id="btn-hint-5050" title="Убрать 2 неверных ответа">
+                    ⚖️ 50/50: Звонок в ОБХСС <span id="hint-5050-count">(2)</span>
+                </button>
+                <button class="btn-hint" id="btn-hint-shield" title="Право на одну ошибку">
+                    🛡️ Блат от Завскладом <span id="hint-shield-count">(1)</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== ЭКРАН 3: ИТОГИ ГЛАВЫ ==================== -->
+        <section class="screen hidden" id="screen-chapter-result">
+            <div class="result-card">
+                <div class="res-stars" id="res-stars">⭐⭐⭐</div>
+                <h2 class="res-title">Экзамен завершён!</h2>
+                <p class="res-chapter" id="res-chapter-title">Глава 1: Гастроном №1</p>
+
+                <div class="res-stats-grid">
+                    <div class="res-stat-box">
+                        <div class="res-stat-lbl">Верных ответов</div>
+                        <div class="res-stat-val" id="res-correct-stat">9 из 10</div>
+                    </div>
+                    <div class="res-stat-box">
+                        <div class="res-stat-lbl">Заработано рублей</div>
+                        <div class="res-stat-val" id="res-coins-earned">+35 ₽</div>
+                    </div>
+                    <div class="res-stat-box" style="grid-column: span 2;">
+                        <div class="res-stat-lbl">Текущее звание</div>
+                        <div class="res-stat-val" id="res-rank-current">Пионер</div>
+                    </div>
+                </div>
+
+                <div class="res-actions">
+                    <button class="btn btn-gold" id="btn-double-reward">
+                        🎬 Удвоить премию (x2 Рублей за рекламу)
+                    </button>
+                    <button class="btn btn-primary" id="btn-share-result">
+                        📢 Поделиться результатом
+                    </button>
+                    <button class="btn btn-primary" id="btn-back-main">
+                        В главное меню
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== МОДАЛЬНОЕ ОКНО «СОВЕТСКИЙ СЕРВАНТ» ==================== -->
+        <div class="modal-overlay hidden" id="modal-servant">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">🏺 Советский Сервант</h3>
+                    <button class="btn-close-modal" id="btn-close-servant">✕</button>
+                </div>
+                <div class="servant-passive-banner">
+                    <span>Пассивный доход:</span>
+                    <strong id="servant-passive-total">+0 ₽ к ответу</strong>
+                </div>
+                <div class="servant-items-list" id="servant-items-list">
+                    <!-- Заполняется динамически из SERVANT_TROPHIES -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- СКРИПТЫ ИГРЫ -->
+    <script src="universal-sdk.js"></script>
+    <script src="audio.js"></script>
+    <script src="questions.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
