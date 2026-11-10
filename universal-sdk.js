@@ -27,6 +27,8 @@ window.GameSDK = {
                 await Promise.race([window.vkBridge.send('VKWebAppInit'), new Promise((_, r) => setTimeout(() => r(new Error('VK timeout')), 1500))]);
                 this.platform = 'vk';
                 console.log('[GameSDK] Инициализация VK/OK успешна');
+                // Запрашиваем комфортный размер окна в десктопном iframe ВК
+                window.vkBridge.send('VKWebAppResizeWindow', { width: 800, height: 950 }).catch(() => {});
                 // Фоновая предзагрузка рекламы ВК
                 window.vkBridge.send('VKWebAppCheckNativeAds', { ad_format: 'interstitial' }).catch(() => {});
                 window.vkBridge.send('VKWebAppCheckNativeAds', { ad_format: 'reward' }).catch(() => {});
