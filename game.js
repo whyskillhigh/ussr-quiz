@@ -38,6 +38,14 @@ window.QuizGame = {
         }
         this.updateSoundBtn();
 
+        const unlockAudio = () => {
+            window.GameAudio.init();
+            window.removeEventListener('click', unlockAudio);
+            window.removeEventListener('touchstart', unlockAudio);
+        };
+        window.addEventListener('click', unlockAudio);
+        window.addEventListener('touchstart', unlockAudio);
+
         // 4. Отрисовка главного меню
         this.renderMainMenu();
         this.bindEvents();
@@ -277,6 +285,7 @@ window.QuizGame = {
         }
 
         this.state.shieldActive = false;
+        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e){}
 
         // Обновляем шапку квиза
         document.getElementById('quiz-chapter-name').textContent = this.currentChapter.title;
@@ -419,6 +428,7 @@ window.QuizGame = {
             // Если был активен щит (блат) — спасаем от поражения
             if (this.state.shieldActive) {
                 this.state.shieldActive = false;
+        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e){}
                 clickedBtn.classList.add('opt-shielded');
                 window.GameAudio.playCoin();
                 alert('🛡️ Сработал блат от Завскладом! Ошибка аннулирована, попробуйте снова!');
@@ -455,7 +465,15 @@ window.QuizGame = {
         factText.textContent = this.currentQuestion.fact || "Исторический факт зафиксирован в архивах Госплана.";
 
         factCard.classList.remove('hidden');
-        document.getElementById('btn-next-question').classList.remove('hidden');
+        const nextBtn = document.getElementById('btn-next-question');
+        nextBtn.classList.remove('hidden');
+
+        // Автоматический плавный доскролл к карточке факта и кнопке далее
+        setTimeout(() => {
+            try {
+                nextBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch (e) {}
+        }, 70);
     },
 
     nextQuestion() {
