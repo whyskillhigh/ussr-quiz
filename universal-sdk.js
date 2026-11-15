@@ -211,13 +211,13 @@ window.GameSDK = {
         if (this.platform === 'vk' && window.vkBridge) {
             try {
                 await window.vkBridge.send('VKWebAppShowWallPostBox', {
-                    message: `${message}\n\nАрхив СССР «Ностальгия по ГОСТу»: ${this.LINKS.dzen}`
+                    message: message
                 });
                 return true;
             } catch (e) {}
         }
         if (navigator.clipboard) {
-            navigator.clipboard.writeText(`${message} ${this.LINKS.dzen}`).catch(() => {});
+            navigator.clipboard.writeText(message).catch(() => {});
         }
         return false;
     }
