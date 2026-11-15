@@ -40,6 +40,9 @@ window.QuizGame = {
 
         const unlockAudio = () => {
             window.GameAudio.init();
+            if (!window.GameAudio.isMusicMuted()) {
+                window.GameAudio.startMusic();
+            }
             window.removeEventListener('click', unlockAudio);
             window.removeEventListener('touchstart', unlockAudio);
         };
@@ -107,14 +110,29 @@ window.QuizGame = {
     },
 
     updateSoundBtn() {
-        const btn = document.getElementById('btn-sound-toggle');
-        if (btn) {
-            btn.textContent = window.GameAudio.muted ? '🔇' : '🔊';
+        const btnSound = document.getElementById('btn-sound-toggle');
+        if (btnSound) {
+            btnSound.textContent = window.GameAudio.isMuted() ? '🔇' : '🔔';
+            btnSound.title = window.GameAudio.isMuted() ? 'Звуки: выкл' : 'Звуки: вкл';
+        }
+        const btnMusic = document.getElementById('btn-music-toggle');
+        if (btnMusic) {
+            btnMusic.textContent = window.GameAudio.isMusicMuted() ? '🔇' : '🎵';
+            btnMusic.title = window.GameAudio.isMusicMuted() ? 'Музыка: выкл' : 'Музыка: вкл';
         }
     },
 
     bindEvents() {
-        // Звук
+        // Музыка
+        const musicBtn = document.getElementById('btn-music-toggle');
+        if (musicBtn) {
+            musicBtn.addEventListener('click', () => {
+                window.GameAudio.toggleMusic();
+                this.updateSoundBtn();
+            });
+        }
+
+        // Звуки
         const soundBtn = document.getElementById('btn-sound-toggle');
         if (soundBtn) {
             soundBtn.addEventListener('click', () => {
@@ -196,6 +214,11 @@ window.QuizGame = {
     },
 
     renderMainMenu() {
+        try {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        } catch(e) {}
         document.getElementById('screen-quiz').classList.add('hidden');
         document.getElementById('screen-chapter-result').classList.add('hidden');
         document.getElementById('screen-main').classList.remove('hidden');
@@ -221,7 +244,7 @@ window.QuizGame = {
             card.innerHTML = `
                 <div class="chapter-img-wrap">
                     <img src="img/${ch.image}" alt="${ch.title}" class="chapter-img" loading="lazy">
-                    <div class="chapter-badge">${isCompleted ? 'СДАНО ' + starsText : 'ЭКЗАМЕН'}</div>
+                    <div class="chapter-badge ${isCompleted ? 'badge-done' : ''}">${isCompleted ? 'СДАНО ' + starsText : 'ЭКЗАМЕН'}</div>
                 </div>
                 <div class="chapter-body">
                     <h3 class="chapter-title">${ch.title}</h3>
