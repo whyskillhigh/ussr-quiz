@@ -18,6 +18,7 @@ window.QuizGame = {
     chapterQuestions: [],
     currentQIndex: 0,
     currentQuestion: null,
+    questionAnswered: false,
     chapterCoinsEarned: 0,
     chapterCorrectCount: 0,
     streakCount: 0,
@@ -190,19 +191,53 @@ window.QuizGame = {
             btnShield.addEventListener('click', () => this.useHintShield());
         }
 
-        // Забрать бонус вступления в клуб
+        // Забрать приветственную премию Госплана
         const claimClubBtn = document.getElementById('btn-claim-club-bonus');
         if (claimClubBtn) {
             claimClubBtn.addEventListener('click', () => this.claimClubBonus());
         }
 
+        // Открыть группу клуба ВК (без принуждения)
+        const joinClubBtn = document.getElementById('btn-join-club');
+        if (joinClubBtn) {
+            joinClubBtn.addEventListener('click', () => {
+                window.GameAudio.playClick();
+                window.GameSDK.joinClubVK();
+            });
+        }
+
+        // Кнопка возврата в меню со страницы вопроса
+        const quizBackBtn = document.getElementById('btn-quiz-back');
+        if (quizBackBtn) {
+            quizBackBtn.addEventListener('click', () => {
+                window.GameAudio.playClick();
+                this.renderMainMenu();
+            });
+        }
+
+        // Закрытие модалки Серванта по клику на фон
+        const servantModal = document.getElementById('modal-servant');
+        if (servantModal) {
+            servantModal.addEventListener('click', (e) => {
+                if (e.target === servantModal) {
+                    window.GameAudio.playClick();
+                    this.closeServant();
+                }
+            });
+        }
+
         // Поделиться результатом
         const shareBtn = document.getElementById('btn-share-result');
         if (shareBtn) {
-            shareBtn.addEventListener('click', () => {
+            shareBtn.addEventListener('click', async () => {
+                window.GameAudio.playClick();
                 const rank = this.getCurrentRank();
-                window.GameSDK.shareResult(rank.title, this.state.score);
-                alert('Результат скопирован! Делитесь с друзьями в соцсетях ☭');
+                const res = await window.GameSDK.shareResult(rank.title, this.state.score);
+                if (res === 'posted') {
+                    this.showToast('📢 Запись опубликована на стене! ☭');
+                } else if (res === 'copied') {
+                    this.showToast('📋 Результат скопирован! Делитесь с друзьями ☭');
+                }
             });
         }
 
@@ -275,7 +310,7 @@ window.QuizGame = {
                 clubBanner.classList.add('bonus-claimed');
                 const claimBtn = document.getElementById('btn-claim-club-bonus');
                 if (claimBtn) {
-                    claimBtn.textContent = '✅ Бонус +50 ₽ получен';
+                    claimBtn.textContent = '✅ Премия +50 ₽ получена';
                     claimBtn.disabled = true;
                 }
             }
@@ -308,6 +343,11 @@ window.QuizGame = {
         }
 
         this.state.shieldActive = false;
+        this.questionAnswered = false;
+        const btn5050 = document.getElementById('btn-hint-5050');
+        const btnShield = document.getElementById('btn-hint-shield');
+        if (btn5050) btn5050.disabled = false;
+        if (btnShield) btnShield.disabled = false;
         try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e){}
 
         // Обновляем шапку квиза
@@ -369,6 +409,7 @@ window.QuizGame = {
     },
 
     useHint5050() {
+        if (this.questionAnswered) return;
         if (this.state.hints5050 > 0) {
             this.state.hints5050--;
             this.apply5050();
@@ -400,7 +441,7 @@ window.QuizGame = {
     },
 
     useHintShield() {
-        if (this.state.shieldActive) return;
+        if (this.questionAnswered || this.state.shieldActive) return;
 
         if (this.state.hintsShield > 0) {
             this.state.hintsShield--;
@@ -428,6 +469,12 @@ window.QuizGame = {
         allButtons.forEach(b => b.disabled = true);
 
         if (isCorrect) {
+            this.questionAnswered = true;
+            const btn5050 = document.getElementById('btn-hint-5050');
+            const btnShield = document.getElementById('btn-hint-shield');
+            if (btn5050) btn5050.disabled = true;
+            if (btnShield) btnShield.disabled = true;
+
             clickedBtn.classList.add('opt-correct');
             window.GameAudio.playCorrect();
             window.GameAudio.playCoin();
@@ -451,10 +498,9 @@ window.QuizGame = {
             // Если был активен щит (блат) — спасаем от поражения
             if (this.state.shieldActive) {
                 this.state.shieldActive = false;
-        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e){}
                 clickedBtn.classList.add('opt-shielded');
                 window.GameAudio.playCoin();
-                alert('🛡️ Сработал блат от Завскладом! Ошибка аннулирована, попробуйте снова!');
+                this.showToast('🛡️ Сработал блат от Завскладом! Ошибка аннулирована, выберите другой ответ!');
                 allButtons.forEach(b => {
                     if (b !== clickedBtn) b.disabled = false;
                 });
@@ -462,6 +508,12 @@ window.QuizGame = {
                 this.updateHintsUI();
                 return;
             }
+
+            this.questionAnswered = true;
+            const btn5050 = document.getElementById('btn-hint-5050');
+            const btnShield = document.getElementById('btn-hint-shield');
+            if (btn5050) btn5050.disabled = true;
+            if (btnShield) btnShield.disabled = true;
 
             clickedBtn.classList.add('opt-wrong');
             window.GameAudio.playWrong();
@@ -534,6 +586,17 @@ window.QuizGame = {
 
         const rank = this.getCurrentRank();
         document.getElementById('res-rank-current').textContent = `${rank.icon} ${rank.title}`;
+
+        const doubleBtn = document.getElementById('btn-double-reward');
+        if (doubleBtn) {
+            if (this.chapterCoinsEarned > 0) {
+                doubleBtn.classList.remove('hidden');
+                doubleBtn.disabled = false;
+                doubleBtn.textContent = '🎬 Удвоить премию (x2 Рублей за рекламу)';
+            } else {
+                doubleBtn.classList.add('hidden');
+            }
+        }
 
         this.updateTopBar();
     },
@@ -615,17 +678,15 @@ window.QuizGame = {
     claimClubBonus() {
         if (this.state.claimedClubBonus) return;
 
-        window.GameSDK.joinClubVK(() => {
-            this.state.coins += 50;
-            this.state.hints5050 += 2;
-            this.state.claimedClubBonus = true;
-            this.save();
-            this.updateTopBar();
-            window.GameAudio.playFanfare();
+        this.state.coins += 50;
+        this.state.hints5050 += 2;
+        this.state.claimedClubBonus = true;
+        this.save();
+        this.updateTopBar();
+        window.GameAudio.playFanfare();
 
-            alert('🎉 Поздравляем! Вам начислено +50 советских рублей и +2 подсказки ОБХСС за поддержку клуба «Ностальгия по ГОСТу»!');
-            this.renderMainMenu();
-        });
+        this.showToast('🎉 Премия Госплана получена: +50 ₽ и +2 подсказки 50/50!');
+        this.renderMainMenu();
     }
 };
 
