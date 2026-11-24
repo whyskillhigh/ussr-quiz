@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Экзамен СССР: Цены, ГОСТы и Быт</title>
     <meta name="description" content="Интерактивный исторический экзамен по эпохе СССР: реальные цены в копейках, ГОСТы, автопром и легендарный быт.">
 
@@ -54,11 +54,11 @@
                 </div>
                 <div class="club-actions">
                     <button class="btn-claim-bonus" id="btn-claim-club-bonus">
-                        🎁 Вступить в клуб (+50 ₽ и 2 подсказки)
+                        🎁 Получить премию Госплана (+50 ₽ и 2 подсказки)
                     </button>
-                    <a href="https://vk.com/club243027245" target="_blank" rel="noopener noreferrer" class="btn-club-link">
+                    <button type="button" id="btn-join-club" class="btn-club-link">
                         ★ Клуб «Ностальгия по ГОСТу»
-                    </a>
+                    </button>
                 </div>
             </section>
 
@@ -79,6 +79,7 @@
         <section class="screen hidden" id="screen-quiz">
             <div class="quiz-header">
                 <div class="quiz-top-bar">
+                    <button type="button" class="btn-quiz-back" id="btn-quiz-back" title="В главное меню">← Меню</button>
                     <span class="quiz-chapter-name" id="quiz-chapter-name">Глава 1</span>
                     <span class="quiz-progress-text" id="quiz-progress-text">Вопрос 1 из 10</span>
                 </div>
